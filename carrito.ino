@@ -4,11 +4,8 @@
 const int EchoPin = 33;   // Pin conectado al Echo del sensor
 const int TriggerPin = 25; // Pin conectado al Trigger del sensor
 
-// Pines de los motores
-const int motorDelanteroAtras = 14;     // OUT1
-const int motorDelanteroAdelante = 12;  // OUT2
-const int motorTraseroAtras = 26;       // OUT3
-const int motorTraseroAdelante = 27;    // OUT4
+// Matriz de pines de los motores
+const int motores[4] = {12, 14, 27, 26}; // {motorDelanteroAdelante, motorDelanteroAtras, motorTraseroAdelante, motorTraseroAtras}
 
 // Pines y configuración del servo
 #define PINSERVO 32
@@ -19,11 +16,10 @@ void setup() {
   // Iniciar el monitor serie
   Serial.begin(115200);
 
-  // Configurar pines de motores como salidas
-  pinMode(motorDelanteroAdelante, OUTPUT);
-  pinMode(motorDelanteroAtras, OUTPUT);
-  pinMode(motorTraseroAdelante, OUTPUT);
-  pinMode(motorTraseroAtras, OUTPUT);
+  // Configurar los pines de los motores como salidas
+  for (int i = 0; i < 4; i++) {
+    pinMode(motores[i], OUTPUT);
+  }
 
   // Configurar pines del sensor ultrasónico
   pinMode(TriggerPin, OUTPUT);
@@ -90,33 +86,36 @@ void explorarYBuscarSalida() {
   }
 }
 
-// Funciones de control de movimiento
-void retroceder(int tiempo) {
-  digitalWrite(motorDelanteroAdelante, HIGH);
-  digitalWrite(motorTraseroAdelante, HIGH);
+void girar180() {
+  // Para girar 180 grados, activa los motores delanteros y traseros en direcciones opuestas.
+  moverMotores(HIGH, LOW, LOW, HIGH, 660);  // Ajusta el tiempo para que gire aproximadamente 180 grados
+}
+
+// Función genérica para controlar el movimiento de los motores
+void moverMotores(int motor1, int motor2, int motor3, int motor4, int tiempo) {
+  digitalWrite(motores[0], motor1);  // Motor delantero adelante
+  digitalWrite(motores[1], motor2);  // Motor delantero atrás
+  digitalWrite(motores[2], motor3);  // Motor trasero adelante
+  digitalWrite(motores[3], motor4);  // Motor trasero atrás
   delay(tiempo);
   detenerMotores();
+}
+
+// Funciones de control de movimiento
+void retroceder(int tiempo) {
+  moverMotores(LOW, HIGH, LOW, HIGH, tiempo);  // Retroceder
 }
 
 void avanzar(int tiempo) {
-  digitalWrite(motorDelanteroAtras, HIGH);
-  digitalWrite(motorTraseroAtras, HIGH);
-  delay(tiempo);
-  detenerMotores();
+  moverMotores(HIGH, LOW, HIGH, LOW, tiempo);  // Avanzar
 }
 
 void girarIzquierda(int tiempo) {
-  digitalWrite(motorDelanteroAdelante, HIGH);
-  digitalWrite(motorTraseroAtras, HIGH);
-  delay(tiempo);
-  detenerMotores();
+  moverMotores(HIGH, LOW, LOW, HIGH, tiempo);  // Girar a la izquierda
 }
 
 void girarDerecha(int tiempo) {
-  digitalWrite(motorDelanteroAtras, HIGH);
-  digitalWrite(motorTraseroAdelante, HIGH);
-  delay(tiempo);
-  detenerMotores();
+  moverMotores(LOW, HIGH, HIGH, LOW, tiempo);  // Girar a la derecha
 }
 
 void detenerse(int tiempo) {
@@ -124,18 +123,9 @@ void detenerse(int tiempo) {
   delay(tiempo);
 }
 
+// Función para detener los motores
 void detenerMotores() {
-  digitalWrite(motorDelanteroAdelante, LOW);
-  digitalWrite(motorDelanteroAtras, LOW);
-  digitalWrite(motorTraseroAdelante, LOW);
-  digitalWrite(motorTraseroAtras, LOW);
-}
-
-void girar180() {
-  // Para girar 180 grados, activa los motores delanteros y traseros en direcciones opuestas.
-  // Esto hará que el carrito gire sobre su eje.
-  digitalWrite(motorDelanteroAdelante, HIGH);
-  digitalWrite(motorTraseroAtras, HIGH);
-  delay(660);  // Ajusta el tiempo para que gire aproximadamente 180 grados
-  detenerMotores(); // Detiene los motores después del giro
+  for (int i = 0; i < 4; i++) {
+    digitalWrite(motores[i], LOW);  // Detener todos los motores
+  }
 }
